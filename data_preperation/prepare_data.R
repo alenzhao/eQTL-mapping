@@ -16,12 +16,34 @@ if ( length(args) == 0 )  {
 } else {
   stop("This is for testing, I don't know what will happen")
 }
+### Functions
+## Change_allele_to_frequencies
+# Function to identify the genotype and determine wheter it is major, minor or heterozygote.
+change_allele_to_frequencies <- function (x,y) {
+  if ( identical(x,allele.list[[1]]$genotype) ) {
+    # The genotype is major, return 0.
+    return(0)
+    
+  } else if ( identical(allele.list[[4]]$genotype,x) ) {
+    # The genotype is NA or 00, return 9.
+    return('NA')
+    
+  } else if ( identical(x,allele.list[[3]]$genotype) ) {
+    # If the genotype is heterozygote, return 3.
+    return(1)
+    
+  } else {
+    # If the genotype is one of the minor alleles, return 2.
+    return(2)
+  }
+}
 
+### Running the data preperation
 ## Loading files
 cat("Starting prepare_data.R..\n\nLoading files..\n\n")
 load(args[1])
 load(args[2])
-cat("Files loaded:\n",args[1],"\n",args[2],"\n")
+cat("Files loaded:\n",args[1],"\n",args[2],"\n\n")
 
 ## Transform the snps
 # For readability change the matrix name and remove Norway data.
@@ -67,7 +89,7 @@ for (i in 1:ncol(snps)) {
     # Extract the genotype.
     geno <- names(alleles.all[a])
     
-    cat("current allele ", geno,'\n')
+    cat("Current allele = ", geno,'\n')
     
     # Extract the number of occurrences.
     count <- alleles.all[[a]]
@@ -77,7 +99,7 @@ for (i in 1:ncol(snps)) {
     alleles <- strsplit(geno, "")
     
     if (identical(alleles[[1]][1],alleles[[1]][2]) & geno != '00') {
-      cat('alleles are identical, homozygote\n')
+      cat('Alleles are identical, sorted as homozygote\n')
       
       if (highest_count_homozygote == 0) {
         # For the first iteration, the first genotype's occurences are the most occured
