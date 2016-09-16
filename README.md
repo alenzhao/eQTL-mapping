@@ -11,7 +11,7 @@ Your gene expression data file and your genotype data file should be prepared fo
 
 How do we prepare data?
 * Open a terminal in the R project (root folder).
-* Run the following command: ‘Rscript --vanilla ./data_preparation/prepare_data.R “<your_genotype_data>“ “<your_gene_expression_data>”’ 
+* Run the following command: ‘Rscript --vanilla ./data_preparation/prepare_data.R “your_genotype_data“ “your_gene_expression_data”’ 
 * The resulting *.RData file will appear in the ‘/RData/‘ folder.
 * Next your SNP and Gene position files should be set-up. They have to have the exact format described here for SNP positions: ‘http://www.bios.unc.edu/research/genomic_software/Matrix_eQTL/Sample_Data/snpsloc.txt' and here for Gene positions: ‘http://www.bios.unc.edu/research/genomic_software/Matrix_eQTL/Sample_Data/geneloc.txt'
 
