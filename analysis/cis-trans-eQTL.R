@@ -12,13 +12,19 @@ library("MatrixEQTL")
 args = commandArgs(trailingOnly = T)
 
 # Test if there is at least one argument: if not, return an exception.
-if ( length(args) == 0 )  {
-  stop("At least two argument must be supplied!\nRscript --vanilla <gene_positions_file> <snps_positions_file> <gene_expression_file>\n", call.=F)
-} else if ( length(args) <= 2 ) {
-  #default output
-  args[3] = "out.txt"
+if ( length(args) <= 5)  {
+  stop("At least 6 argument must be supplied!\nRscript --vanilla <gene_positions_file> <snps_positions_file> <gene_expression_file> <cis_treshold> <trans_treshold> <cisDist>\n", call.=F)
 } else {
-  stop("This is for testing, I don't know what will happen")
+  # Set gene and snp position files.
+  snpspos = read.table(args[2], header = TRUE, stringsAsFactors = FALSE)
+  genepos = read.table(args[1], header = TRUE, stringsAsFactors = FALSE)
+  # The basic_eqtl.RData file is stored in project root/data_preparation/RData/basic_eqtl_mapping.RData
+  load(args[3])
+  # Only associations significant at this level will be saved.
+  pvOutputThreshold_tra = as.numeric(args[5])
+  pvOutputThreshold_cis = as.numeric(args[4])
+  # Distance for local gene-SNP pairs
+  cisDist = as.numeric(args[6])
 }
 
 ## Load default settings
@@ -31,9 +37,6 @@ subDir <- "/R-Output/"
 # If the main and sub directory do not exist, create them.
 ifelse(!dir.exists(file.path(mainDir, subDir)), dir.create(file.path(mainDir, subDir)), FALSE)
 
-# The basic_eqtl.RData file is stored in project root/data_preparation/RData/basic_eqtl_mapping.RData
-load("data_preparation/RData/basic_eqtl_mapping.RData")
-
 ### Prepare matrix eqtl
 ## Settings
 # Set the model used for eqtl mapping.
@@ -41,21 +44,6 @@ useModel = modelLINEAR; # modelANOVA, modelLINEAR, or modelLINEAR_CROSS
 
 # Change covariates to character() for no covariates.
 covariates_file_name = character()
-
-# Only associations significant at this level will be saved.
-pvOutputThreshold_tra = 1e-5;
-pvOutputThreshold_cis = 1e-5;
-
-# Distance for local gene-SNP pairs
-cisDist = 1e6;
-
-# Set gene and snp position files.
-snpspos = read.table("~/Documents/CeD_43loci_alternative_format.txt", header = TRUE, stringsAsFactors = FALSE);
-genepos = read.table("~/Dropbox/Erik/genepos.txt", header = TRUE, stringsAsFactors = FALSE);
-#genepos <- args[1]
-#genepos <- "~/Dropbox/Erik/genepos.txt"
-#snpspos <- args[2]
-#snpspos <- "~/Documents/CeD_43loci_alternative_format.txt"
 
 # Error covariance matrix.
 # Set to numeric() for identity.
@@ -133,6 +121,3 @@ for (interval in time_intervals) {
   # Plot the histogram of all p-values.
   plot(me)
 }
-
-plot(me$all$eqtls)
-plot(me$all$eqtls$pvalue,me$all$eqtls$snps)
