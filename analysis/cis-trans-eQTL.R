@@ -7,6 +7,20 @@
 # Matrix eQTL mapping.
 library("MatrixEQTL")
 
+## Command line arguments
+# Makes command line arguments availble for this script.
+args = commandArgs(trailingOnly = T)
+
+# Test if there is at least one argument: if not, return an exception.
+if ( length(args) == 0 )  {
+  stop("At least two argument must be supplied!\nRscript --vanilla <gene_positions_file> <snps_positions_file> <gene_expression_file>\n", call.=F)
+} else if ( length(args) <= 2 ) {
+  #default output
+  args[3] = "out.txt"
+} else {
+  stop("This is for testing, I don't know what will happen")
+}
+
 ## Load default settings
 # Main directory, should be universal on every system.
 mainDir <- "~/Documents/"
@@ -29,7 +43,19 @@ useModel = modelLINEAR; # modelANOVA, modelLINEAR, or modelLINEAR_CROSS
 covariates_file_name = character()
 
 # Only associations significant at this level will be saved.
-pvOutputThreshold = 1e-5;
+pvOutputThreshold_tra = 1e-5;
+pvOutputThreshold_cis = 1e-5;
+
+# Distance for local gene-SNP pairs
+cisDist = 1e6;
+
+# Set gene and snp position files.
+snpspos = read.table("~/Documents/CeD_43loci_alternative_format.txt", header = TRUE, stringsAsFactors = FALSE);
+genepos = read.table("~/Dropbox/Erik/genepos.txt", header = TRUE, stringsAsFactors = FALSE);
+#genepos <- args[1]
+#genepos <- "~/Dropbox/Erik/genepos.txt"
+#snpspos <- args[2]
+#snpspos <- "~/Documents/CeD_43loci_alternative_format.txt"
 
 # Error covariance matrix.
 # Set to numeric() for identity.
@@ -54,10 +80,12 @@ time_intervals <- list(t0 = seq(1,dim(count.all)[2], 4),
 # Change gene expression data to 4 segments for the time intervals.
 for (interval in time_intervals) {
   # Pattern for output file name.
-  pattern_name <- paste("Basic eQTL - Threshold ",pvOutputThreshold," ",date())
+  pattern_name.cis <- paste("Cis eQTL - Threshold ",pvOutputThreshold_cis," ",date())
+  pattern_name.trans <- paste("Trans eQTL - Threshold ",pvOutputThreshold_tra," ",date())
   
   # Output file name and location.
-  output_file_name = tempfile(pattern = pattern_name,tmpdir="~/Documents/R-Output/basic");
+  output_file_name_cis = tempfile(pattern = pattern_name.cis,tmpdir="~/Documents/R-Output/cis");
+  output_file_name_tra = tempfile(pattern = pattern_name.trans,tmpdir="~/Documents/R-Output/trans");
   
   # Load gene expression data .
   gene = SlicedData$new();
@@ -76,16 +104,21 @@ for (interval in time_intervals) {
   cvrt$fileSkipColumns = 1;       # one column of row labels
   
   ## Run the analysis.
-  me = Matrix_eQTL_engine(
+  me = Matrix_eQTL_main(
     snps = snps.sd,
-    gene = gene,
+    gene = gene, 
     cvrt = cvrt,
-    output_file_name = output_file_name,
-    pvOutputThreshold = pvOutputThreshold,
+    output_file_name     = output_file_name_tra,
+    pvOutputThreshold     = pvOutputThreshold_tra,
     useModel = useModel, 
     errorCovariance = errorCovariance, 
-    verbose = TRUE,
-    pvalue.hist = TRUE,
+    verbose = TRUE, 
+    output_file_name.cis = output_file_name_cis,
+    pvOutputThreshold.cis = pvOutputThreshold_cis,
+    snpspos = snpspos, 
+    genepos = genepos,
+    cisDist = cisDist,
+    pvalue.hist = "qqplot",
     min.pv.by.genesnp = FALSE,
     noFDRsaveMemory = FALSE);
   

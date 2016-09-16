@@ -44,7 +44,7 @@ change_allele_to_frequencies <- function (x,y) {
 mainDir <- "~/Documents"
 
 # Sub directory.
-subDir <- "/R-Output/R/eQTL-mapping"
+subDir <- "/R/eQTL-mapping"
 
 # If the main and sub directory do not exist, create them.
 ifelse(!dir.exists(file.path(mainDir, subDir)), dir.create(file.path(mainDir, subDir)), FALSE)
