@@ -103,3 +103,6 @@ for (interval in time_intervals) {
 
 plot(me$all$eqtls)
 plot(me$all$eqtls$pvalue,me$all$eqtls$snps)
+
+me$all$eqtls$beta_se = me$all$eqtls$beta / me$all$eqtls$statistic
+plot(me$all$eqtls$beta_se)

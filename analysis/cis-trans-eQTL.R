@@ -14,17 +14,26 @@ args = commandArgs(trailingOnly = T)
 # Test if there is at least one argument: if not, return an exception.
 if ( length(args) <= 5)  {
   stop("At least 6 argument must be supplied!\nRscript --vanilla <gene_positions_file> <snps_positions_file> <gene_expression_file> <cis_treshold> <trans_treshold> <cisDist>\n", call.=F)
-} else {
+
+  } else {
   # Set gene and snp position files.
-  snpspos = read.table(args[2], header = TRUE, stringsAsFactors = FALSE)
-  genepos = read.table(args[1], header = TRUE, stringsAsFactors = FALSE)
+  #snpspos = read.table(args[2], header = TRUE, stringsAsFactors = FALSE)
+  snpspos = read.table("~/Documents/CeD_43loci_alternative_format.txt", header = TRUE, stringsAsFactors = FALSE)
+  #genepos = read.table(args[1], header = TRUE, stringsAsFactors = FALSE)
+  genepos = read.table("~/Documents/Genepos_alternative_format.txt", header = TRUE, stringsAsFactors = FALSE)
+  
   # The basic_eqtl.RData file is stored in project root/data_preparation/RData/basic_eqtl_mapping.RData
-  load(args[3])
+  #load(args[3])
+  load("~/Documents/R/eQTL-mapping/data_preparation/RData/basic_eqtl_mapping Mon Sep 19 11:39:14 2016.RData")
+  
   # Only associations significant at this level will be saved.
-  pvOutputThreshold_tra = as.numeric(args[5])
-  pvOutputThreshold_cis = as.numeric(args[4])
+  #pvOutputThreshold_tra = as.numeric(args[5])
+  #pvOutputThreshold_cis = as.numeric(args[4])
+  pvOutputThreshold_tra = 1e-5
+  pvOutputThreshold_cis = 1e-3
   # Distance for local gene-SNP pairs
-  cisDist = as.numeric(args[6])
+  #cisDist = as.numeric(args[6])
+  cisDist = 1e6
 }
 
 ## Load default settings
@@ -60,10 +69,10 @@ snps.sd$fileSliceSize = 2000;      # read file in slices of 2,000 rows
 
 # Analysis genotype data versus gene expression data requries a loop through the 
 # different timepoints measured in the gene expression data.
-time_intervals <- list(t0 = seq(1,dim(count.all)[2], 4),
-                       t1 = seq(2,dim(count.all)[2],4),
-                       t2 = seq(3,dim(count.all)[2],4),
-                       t3 = seq(4,dim(count.all)[2],4))
+time_intervals <- list(t0 = seq(1,dim(GE)[2], 4),
+                       t1 = seq(2,dim(GE)[2],4),
+                       t2 = seq(3,dim(GE)[2],4),
+                       t3 = seq(4,dim(GE)[2],4))
 
 # Change gene expression data to 4 segments for the time intervals.
 for (interval in time_intervals) {
@@ -77,7 +86,7 @@ for (interval in time_intervals) {
   
   # Load gene expression data .
   gene = SlicedData$new();
-  gene$CreateFromMatrix(count.all[,interval])
+  gene$CreateFromMatrix(GE[,interval])
   gene$fileDelimiter = "\t";      # the TAB character
   gene$fileOmitCharacters = "NA"; # denote missing values;
   gene$fileSkipRows = 1;          # one row of column labels

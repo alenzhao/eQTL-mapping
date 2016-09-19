@@ -4,17 +4,35 @@
 
 ### Settings
 ## Command line arguments
+# Clear the current environment
+rm(list=ls())
+
 # Makes command line arguments availble for this script.
 args = commandArgs(trailingOnly = T)
 
-# Test if there is at least one argument: if not, return an exception.
-if ( length(args) == 0 )  {
-  stop("At least two argument must be supplied!\nRscript --vanilla prepare_data.R <genotype_file> <gene_expression_file> [output]\n", call.=F)
-} else if ( length(args) <= 2 ) {
-  #default output
-  args[3] = "out.txt"
+# Test if there is at least two arguments: if not, return an exception.
+if ( length(args) <= 1 )  {
+  stop("At least two argument must be supplied!\nRscript --vanilla prepare_data.R <genotype_file> <gene_expression_file>\n", call.=F)
 } else {
-  stop("This is for testing, I don't know what will happen")
+  # Let the user know the program started.
+  cat("Starting prepare_data.R..\n\nLoading files..\n\n")
+  
+  # Load user provided files.
+  #load(args[1])
+  #load(args[2])
+  load("~/Dropbox/Erik/clones_CeD_genotypes_noDuplicates.Rdata")
+  load("~/Dropbox/Erik/count_all_batch_times_sample.names_96Samples_noCD8_leiden.Rdata")
+  # Print if the files are loaded.
+  cat("Files loaded:\n",args[1],"\n",args[2],"\n\n")
+  
+  # Store all the names in the global environment.
+  nms <- ls(pattern = "", envir = .GlobalEnv)
+  L <- sapply(nms, get, envir = .GlobalEnv, simplify = FALSE)
+  
+  # Sort out the matrixes.
+  L <- L[which(sapply(L,is.matrix) == T)]
+  GE <- L[[1]]
+  snps <- L[[2]]
 }
 ### Functions
 ## Change_allele_to_frequencies
@@ -25,7 +43,7 @@ change_allele_to_frequencies <- function (x,y) {
     return(0)
     
   } else if ( identical(allele.list[[4]]$genotype,x) ) {
-    # The genotype is NA or 00, return 9.
+    # The genotype is NA or 00, return NA.
     return('NA')
     
   } else if ( identical(x,allele.list[[3]]$genotype) ) {
@@ -49,16 +67,11 @@ subDir <- "/R/eQTL-mapping"
 # If the main and sub directory do not exist, create them.
 ifelse(!dir.exists(file.path(mainDir, subDir)), dir.create(file.path(mainDir, subDir)), FALSE)
 
-cat("Starting prepare_data.R..\n\nLoading files..\n\n")
-load(args[1])
-load(args[2])
-cat("Files loaded:\n",args[1],"\n",args[2],"\n\n")
-
 ## Transform the snps
 # For readability change the matrix name and remove Norway data.
 snps <- mergedGenotypes_clones2[-(23:27),]
 
-# Keeps track of the SNPs that are causing noise in the data and are not representable.
+# Keeps track of the snps that are causing noise in the data and are not representable.
 snps.discarded <- c()
 snps.discarded.pos <- c()
 snps.discarded.counter <- 0
@@ -122,7 +135,7 @@ for (i in 1:ncol(snps)) {
         # If the current genotype has more occurences than the lastly noted genotype,
         # it is automatically the major allele on the first position.
         cat("Adding ",geno," with count ", count, "as major allele\nPreviously ",
-            allele.list[[1]]$genotype," with count ", allele.list[[1]]$count,'\n')
+        allele.list[[1]]$genotype," with count ", allele.list[[1]]$count,'\n')
         
         # Altering the position from the previous current major allele to minor allele
         # in the allele.list.
@@ -183,10 +196,11 @@ snps.t <- t(snps)
 # Remove those samples that don't occur in the gene expression data. 
 # “TCC-09-1" and ”TCC-08-1”.
 indices.snps <- c()
-for (colname in colnames(count.all)){
+for (colname in colnames(GE)){
   # Save indices, where the colnames from the gene expression co-exist in the 
   # genotype matrix.
   strs <- strsplit(colname,"__")
+  print(strs)
   indices.snps <- c(indices.snps,grep(strs[[1]][2],colnames(snps.t)))
 }
 
@@ -201,14 +215,15 @@ indices.ge <- c()
 for (colname in colnames(snps.t)) {
   # Save indices, where the colnames from the genotype matrix co-exist in the 
   # gene expression matrix.
-  indices.ge <- c(indices.ge,  grep(colname, colnames(count.all)))
+  indices.ge <- c(indices.ge,  grep(colname, colnames(GE)))
 }
 
 # Re-arange data frame
-count.all <- count.all[,indices.ge]
+GE <- GE[,indices.ge]
 
 ### Save image
 ## Save the current data imgae for further use.
 # Save this particular data image for basic eqtl mapping.
-save.image(file=paste(getwd(),"/data_preparation/RData/basic_eqtl_mapping.RData",sep=""))
-save(count.all,snps.t, file=paste(getwd(),"/data_preparation/RData/basic_eqtl_mapping.RData",sep=""))
+curDate <- date()
+save.image(file=paste(getwd(),"/data_preparation/RData/basic_eqtl_mapping ",curDate,".RData",sep=""))
+save(GE,snps.t, file=paste(getwd(),"/data_preparation/RData/basic_eqtl_mapping ",curDate,".RData",sep=""))
