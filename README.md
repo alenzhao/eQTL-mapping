@@ -31,13 +31,13 @@ Note: The MAF is calculated automatically at this step.
 ```Rscript --vanilla ./analysis/cis-trans-eQTL.R “your_gene_positions” “your_snp_positions” “location_to_RData_file” “cis_treshold_e.g._1e-5” “trans_treshold_e.g.1e-5” “cisDist_e.g._1e6” ```
 * The results are now in your `/Users/your_name/Documents/R-Output/cis` & `/Users/your_name/Documents/R-Output/trans` folder.
 
-### Data file conversion_(Specific for personal use only)_
+### Data file conversion _(Specific for personal use only)_
 
 A runnable jar converts Gene positions and SNP position files to the desired format.
 
 To run:
-```java -jar ConvertPositionFile.jar "/Users/your_username/path/to/file.txt" "/Users/your_username/path/to/your_output_file_name.txt” “file_type”
-```
+```java -jar ConvertPositionFile.jar "/Users/your_username/path/to/file.txt" "/Users/your_username/path/to/your_output_file_name.txt” “file_type”```
+
 * Note that you must have java installed on your system.
 * You should use full paths to the files, else you will receive an error.
 * The file type can either be gene or snp, depending on what sort of file you want to change.
