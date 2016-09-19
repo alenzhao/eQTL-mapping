@@ -12,6 +12,9 @@ Software to map eQTLs, (cis- and trans-eQTLs), as well as sQTLs by comparing gen
 Your gene expression data file and your genotype data file should be prepared for input into the Matrix eQTL package. By doing so, the data created will be saved in `/data_preparation/RData/`.
 
 _How do we prepare data?_
+
+Note: The MAF is calculated automatically at this step.
+
 * Open a terminal in the R project (root folder).
 * Run the following command:
 ```Rscript --vanilla ./data_preparation/prepare_data.R “your_genotype_data“ “your_gene_expression_data” ```
@@ -27,3 +30,14 @@ _How do we prepare data?_
 * Run:
 ```Rscript --vanilla ./analysis/cis-trans-eQTL.R “your_gene_positions” “your_snp_positions” “location_to_RData_file” “cis_treshold_e.g._1e-5” “trans_treshold_e.g.1e-5” “cisDist_e.g._1e6” ```
 * The results are now in your `/Users/your_name/Documents/R-Output/cis` & `/Users/your_name/Documents/R-Output/trans` folder.
+
+### Data file conversion_(Specific for personal use only)_
+
+A runnable jar converts Gene positions and SNP position files to the desired format.
+
+To run:
+```java -jar ConvertPositionFile.jar "/Users/your_username/path/to/file.txt" "/Users/your_username/path/to/your_output_file_name.txt” “file_type”
+```
+* Note that you must have java installed on your system.
+* You should use full paths to the files, else you will receive an error.
+* The file type can either be gene or snp, depending on what sort of file you want to change.
