@@ -17,23 +17,23 @@ if ( length(args) <= 5)  {
 
   } else {
   # Set gene and snp position files.
-  #snpspos = read.table(args[2], header = TRUE, stringsAsFactors = FALSE)
-  snpspos = read.table("~/Documents/CeD_43loci_alternative_format.txt", header = TRUE, stringsAsFactors = FALSE)
-  #genepos = read.table(args[1], header = TRUE, stringsAsFactors = FALSE)
-  genepos = read.table("~/Documents/Genepos_alternative_format.txt", header = TRUE, stringsAsFactors = FALSE)
+  snpspos = read.table(args[2], header = TRUE, stringsAsFactors = FALSE)
+  #snpspos = read.table("~/Documents/CeD_43loci_alternative_format.txt", header = TRUE, stringsAsFactors = FALSE)
+  genepos = read.table(args[1], header = TRUE, stringsAsFactors = FALSE)
+  #genepos = read.table("~/Documents/Genepos_alternative_format.txt", header = TRUE, stringsAsFactors = FALSE)
   
   # The basic_eqtl.RData file is stored in project root/data_preparation/RData/basic_eqtl_mapping.RData
-  #load(args[3])
-  load("~/Documents/R/eQTL-mapping/data_preparation/RData/basic_eqtl_mapping Mon Sep 19 11:39:14 2016.RData")
+  load(args[3])
+  #load("~/Documents/R/eQTL-mapping/data_preparation/RData/basic_eqtl_mapping Mon Sep 19 11:39:14 2016.RData")
   
   # Only associations significant at this level will be saved.
-  #pvOutputThreshold_tra = as.numeric(args[5])
-  #pvOutputThreshold_cis = as.numeric(args[4])
-  pvOutputThreshold_tra = 1e-5
-  pvOutputThreshold_cis = 1e-3
+  pvOutputThreshold_tra = as.numeric(args[5])
+  pvOutputThreshold_cis = as.numeric(args[4])
+  #pvOutputThreshold_tra = 1e-5
+  #pvOutputThreshold_cis = 0.05
   # Distance for local gene-SNP pairs
-  #cisDist = as.numeric(args[6])
-  cisDist = 1e6
+  cisDist = as.numeric(args[6])
+  #cisDist = 1e6
 }
 
 ## Load default settings

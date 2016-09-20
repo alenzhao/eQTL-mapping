@@ -18,7 +18,7 @@ subDir <- "/R-Output/"
 ifelse(!dir.exists(file.path(mainDir, subDir)), dir.create(file.path(mainDir, subDir)), FALSE)
 
 # The basic_eqtl.RData file is stored in project root/data_preparation/RData/basic_eqtl_mapping.RData
-load("data_preparation/RData/basic_eqtl_mapping.RData")
+load("data_preparation/RData/basic_eqtl_mapping Mon Sep 19 11:39:14 2016.RData")
 
 ### Prepare matrix eqtl
 ## Settings
@@ -46,10 +46,10 @@ snps.sd$fileSliceSize = 2000;      # read file in slices of 2,000 rows
 
 # Analysis genotype data versus gene expression data requries a loop through the 
 # different timepoints measured in the gene expression data.
-time_intervals <- list(t0 = seq(1,dim(count.all)[2], 4),
-                       t1 = seq(2,dim(count.all)[2],4),
-                       t2 = seq(3,dim(count.all)[2],4),
-                       t3 = seq(4,dim(count.all)[2],4))
+time_intervals <- list(t0 = seq(1,dim(GE)[2], 4),
+                       t1 = seq(2,dim(GE)[2],4),
+                       t2 = seq(3,dim(GE)[2],4),
+                       t3 = seq(4,dim(GE)[2],4))
 
 # Change gene expression data to 4 segments for the time intervals.
 for (interval in time_intervals) {
@@ -61,7 +61,7 @@ for (interval in time_intervals) {
   
   # Load gene expression data .
   gene = SlicedData$new();
-  gene$CreateFromMatrix(count.all[,interval])
+  gene$CreateFromMatrix(GE[,interval])
   gene$fileDelimiter = "\t";      # the TAB character
   gene$fileOmitCharacters = "NA"; # denote missing values;
   gene$fileSkipRows = 1;          # one row of column labels
@@ -106,3 +106,4 @@ plot(me$all$eqtls$pvalue,me$all$eqtls$snps)
 
 me$all$eqtls$beta_se = me$all$eqtls$beta / me$all$eqtls$statistic
 plot(me$all$eqtls$beta_se)
+

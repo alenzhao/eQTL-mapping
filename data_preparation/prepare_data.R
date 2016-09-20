@@ -18,10 +18,10 @@ if ( length(args) <= 1 )  {
   cat("Starting prepare_data.R..\n\nLoading files..\n\n")
   
   # Load user provided files.
-  #load(args[1])
-  #load(args[2])
-  load("~/Dropbox/Erik/clones_CeD_genotypes_noDuplicates.Rdata")
-  load("~/Dropbox/Erik/count_all_batch_times_sample.names_96Samples_noCD8_leiden.Rdata")
+  load(args[1])
+  load(args[2])
+  #load("~/Dropbox/Erik/clones_CeD_genotypes_noDuplicates.Rdata")
+  #load("~/Dropbox/Erik/count_all_batch_times_sample.names_96Samples_noCD8_leiden.Rdata")
   # Print if the files are loaded.
   cat("Files loaded:\n",args[1],"\n",args[2],"\n\n")
   
@@ -59,15 +59,19 @@ change_allele_to_frequencies <- function (x,y) {
 ### Running the data preperation
 ## Loading files
 # Main directory, should be universal on every system.
+# Verbose - Print for checking existing paths.
+cat("\nCheck if directorys exist..\n\n")
 mainDir <- "~/Documents"
 
 # Sub directory.
 subDir <- "/R/eQTL-mapping"
 
 # If the main and sub directory do not exist, create them.
-ifelse(!dir.exists(file.path(mainDir, subDir)), dir.create(file.path(mainDir, subDir)), FALSE)
+ifelse(!dir.exists(file.path(mainDir, subDir)), dir.create(file.path(mainDir, subDir)),"The directory's already exist, continuing..")
 
 ## Transform the snps
+# Verbose - Print transforming SNPs.
+cat("Transforming SNPs\n\n")
 # For readability change the matrix name and remove Norway data.
 snps <- mergedGenotypes_clones2[-(23:27),]
 
@@ -79,22 +83,23 @@ snps.discarded.counter <- 0
 # For every column in the genotype data.
 for (i in 1:ncol(snps)) {
   
-  # Print current column and column name.
-  cat("#",i,"- current column: ",colnames(snps)[i],"\n")
+  # Verbose - Print current column and column name.
+  #cat("#",i,"- current column: ",colnames(snps)[i],"\n")
   
   # Save genotype and genotype count for each column.
   alleles.all <- table(snps[,i])
   
   # A minimum of 3 samples for a genotype is required to effectively calculate correlation.
   # Therefore we are removing the rows where this is not the case.
-  if ( length(table(snps[,i])) == 1 | min(table(snps[,i])) < 3 ) {
-    
+  if ( length(table(snps[,i])) < 3 & min(table(snps[,i])) < 3) {
+  
     # Set an index for the SNP, so that later it can be removed.
     snps.discarded.pos <- c(snps.discarded.pos,i)
     
     # Store the discarded SNP for later review.
     snps.discarded <- c(snps.discarded,colnames(snps)[i])
     snps.discarded.counter <- snps.discarded.counter + 1
+    
   }
   
   # List with all the major, minor, and heterozygote genotypes and their respecitve counts.
@@ -111,7 +116,8 @@ for (i in 1:ncol(snps)) {
     # Extract the genotype.
     geno <- names(alleles.all[a])
     
-    cat("Current allele = ", geno,'\n')
+    # Verbose - Print current allele.
+    #cat("Current allele = ", geno,'\n')
     
     # Extract the number of occurrences.
     count <- alleles.all[[a]]
@@ -121,12 +127,15 @@ for (i in 1:ncol(snps)) {
     alleles <- strsplit(geno, "")
     
     if (identical(alleles[[1]][1],alleles[[1]][2]) & geno != '00') {
-      cat('Alleles are identical, sorted as homozygote\n')
+      # Verbose - Print if alleles are identical, and thus are homozygous.
+      #cat('Alleles are identical, sorted as homozygote\n')
       
       if (highest_count_homozygote == 0) {
         # For the first iteration, the first genotype's occurences are the most occured
         # genotype and will be added on the first position.
-        cat("Adding ",geno," with count ", count, "as major allele\n")
+        
+        # Verbose - Print which genotype and count is added as major allele.
+        #cat("Adding ",geno," with count ", count, "as major allele\n")
         highest_count_homozygote <- count
         allele.list[[1]]$genotype <- geno
         allele.list[[1]]$count <- count
@@ -134,8 +143,11 @@ for (i in 1:ncol(snps)) {
       } else if (highest_count_homozygote < count) {
         # If the current genotype has more occurences than the lastly noted genotype,
         # it is automatically the major allele on the first position.
-        cat("Adding ",geno," with count ", count, "as major allele\nPreviously ",
-        allele.list[[1]]$genotype," with count ", allele.list[[1]]$count,'\n')
+        
+        # Verbose - Print which genotype and count is added as new major allele,
+        # and which genotype and count previously occupied that spot.
+        #cat("Adding ",geno," with count ", count, "as major allele\nPreviously ",
+        #allele.list[[1]]$genotype," with count ", allele.list[[1]]$count,'\n')
         
         # Altering the position from the previous current major allele to minor allele
         # in the allele.list.
@@ -151,7 +163,9 @@ for (i in 1:ncol(snps)) {
         # If the highest occuring genotype already found has more occurences,
         # the resulting genotype will be the minor allele which is the 2nd position
         # in the list.
-        cat("Adding ",geno," with count ", count, "as minor allele\n")
+        
+        # Verbose - Print which genotype and count is added as minor allele.
+        #cat("Adding ",geno," with count ", count, "as minor allele\n")
         allele.list[[2]]$genotype <- c(allele.list[[2]]$genotype, geno)
         allele.list[[2]]$count <- c(allele.list[[2]]$count, count)
       }
@@ -164,8 +178,12 @@ for (i in 1:ncol(snps)) {
         
       } else {
         # If the genotype is not '00' it is automatically a heterozygote.
-        cat('alleles are not identical, heterozygote\n')
-        cat("Adding ",geno," with count ", count, "as heterozygote allele\n")
+        
+        # Verbose - Print if genes are not identical, and thus are heterozygote.
+        #cat('alleles are not identical, heterozygote\n')
+        
+        # Verbose - Print which genotype and count is added as heterozygous.
+        #cat("Adding ",geno," with count ", count, "as heterozygote allele\n")
         allele.list[[3]]$genotype <- geno
         allele.list[[3]]$count <- count 
       }
@@ -177,12 +195,16 @@ for (i in 1:ncol(snps)) {
     # Check the current snp agains the determined major, minor and heterozygote genotypes,
     # and determine the allele frequency.
     snp.freq <- change_allele_to_frequencies(snps[j,i],allele.list)
-    cat("Changing current snip: ",snps[j,i]," to: ", snp.freq,"\n")
+    
+    # Verbose - Print the current snip' genotype and the corrosponding frequency.
+    #cat("Changing current snip: ",snps[j,i]," to: ", snp.freq,"\n")
     
     # Save the SNP frequency at previous occupied genotype location.
     snps[j,i] <- snp.freq
   }
 }
+# Verbose - Print removing discarded SNPs
+cat("Removing discarded SNPs\n\n")
 
 # Remove discarded snps from data set.
 snps <- snps[,-snps.discarded.pos]
@@ -200,7 +222,6 @@ for (colname in colnames(GE)){
   # Save indices, where the colnames from the gene expression co-exist in the 
   # genotype matrix.
   strs <- strsplit(colname,"__")
-  print(strs)
   indices.snps <- c(indices.snps,grep(strs[[1]][2],colnames(snps.t)))
 }
 
@@ -225,5 +246,13 @@ GE <- GE[,indices.ge]
 ## Save the current data imgae for further use.
 # Save this particular data image for basic eqtl mapping.
 curDate <- date()
-save.image(file=paste(getwd(),"/data_preparation/RData/basic_eqtl_mapping ",curDate,".RData",sep=""))
-save(GE,snps.t, file=paste(getwd(),"/data_preparation/RData/basic_eqtl_mapping ",curDate,".RData",sep=""))
+save.image(file=paste(getwd(),"/data_preparation/RData/eqtl_mapping ",curDate,".RData",sep=""))
+save(GE,snps.t, file=paste(getwd(),"/data_preparation/RData/eqtl_mapping ",curDate,".RData",sep=""))
+
+
+### User information
+## Prints information to the command line for the user.
+# Shows the user how many SNPs are discarded and which ones.
+cat("\nThe following SNPs were discarded due to lack of significance in occurence;\n\nSNP Names;\n")
+for (snp.disc in snps.discarded) {cat(snp.disc,"\n")}
+cat("\n\nTotal number of SNPs discarded;\n",snps.discarded.counter,"\n\nRData file's saved.\n\n")
