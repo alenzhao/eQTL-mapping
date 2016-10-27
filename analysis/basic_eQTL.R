@@ -2,6 +2,8 @@
 # Author: E. Schutte #
 ######################
 
+
+
 ### Settings
 ## Loading libraries
 # Matrix eQTL mapping.
@@ -9,16 +11,16 @@ library("MatrixEQTL")
 
 ## Load default settings
 # Main directory, should be universal on every system.
-mainDir <- "~/Documents/"
+mainDir <- "~/Documents"
 
 # Sub directory.
-subDir <- "/R-Output/"
+subDir <- "R"
 
 # If the main and sub directory do not exist, create them.
 ifelse(!dir.exists(file.path(mainDir, subDir)), dir.create(file.path(mainDir, subDir)), FALSE)
 
-# The basic_eqtl.RData file is stored in project root/data_preparation/RData/basic_eqtl_mapping.RData
-load("data_preparation/RData/basic_eqtl_mapping Mon Sep 19 11:39:14 2016.RData")
+# The basic_eqtl. RData file is stored in project root/data_preparation/RData/basic_eqtl_mapping.RData
+
 
 ### Prepare matrix eqtl
 ## Settings
@@ -46,7 +48,7 @@ snps.sd$fileSliceSize = 2000;      # read file in slices of 2,000 rows
 
 # Analysis genotype data versus gene expression data requries a loop through the 
 # different timepoints measured in the gene expression data.
-time_intervals <- list(t0 = seq(1,dim(GE)[2], 4),
+time_intervals <- list(t0 = seq(1,dim(GE)[2],4),
                        t1 = seq(2,dim(GE)[2],4),
                        t2 = seq(3,dim(GE)[2],4),
                        t3 = seq(4,dim(GE)[2],4))
@@ -59,7 +61,7 @@ for (interval in time_intervals) {
   # Output file name and location.
   output_file_name = tempfile(pattern = pattern_name,tmpdir="~/Documents/R-Output/basic");
   
-  # Load gene expression data .
+  # Load gene expression data.
   gene = SlicedData$new();
   gene$CreateFromMatrix(GE[,interval])
   gene$fileDelimiter = "\t";      # the TAB character

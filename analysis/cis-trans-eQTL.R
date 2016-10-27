@@ -17,23 +17,25 @@ if ( length(args) <= 5)  {
 
   } else {
   # Set gene and snp position files.
-  snpspos = read.table(args[2], header = TRUE, stringsAsFactors = FALSE)
+  #snpspos = read.table(args[2], header = TRUE, stringsAsFactors = FALSE)
   #snpspos = read.table("~/Documents/CeD_43loci_alternative_format.txt", header = TRUE, stringsAsFactors = FALSE)
-  genepos = read.table(args[1], header = TRUE, stringsAsFactors = FALSE)
+  #genepos = read.table(args[1], header = TRUE, stringsAsFactors = FALSE)
   #genepos = read.table("~/Documents/Genepos_alternative_format.txt", header = TRUE, stringsAsFactors = FALSE)
+  snpspos = read.table("~/tijdelijk/eQTL-mapping/analysis/snp.txt", header = TRUE, stringsAsFactors = FALSE)
+  genepos = read.table("~/tijdelijk/eQTL-mapping/analysis/gene.txt", header = TRUE, stringsAsFactors = FALSE)
   
   # The basic_eqtl.RData file is stored in project root/data_preparation/RData/basic_eqtl_mapping.RData
-  load(args[3])
+  
   #load("~/Documents/R/eQTL-mapping/data_preparation/RData/basic_eqtl_mapping Mon Sep 19 11:39:14 2016.RData")
   
   # Only associations significant at this level will be saved.
-  pvOutputThreshold_tra = as.numeric(args[5])
-  pvOutputThreshold_cis = as.numeric(args[4])
-  #pvOutputThreshold_tra = 1e-5
-  #pvOutputThreshold_cis = 0.05
+  #pvOutputThreshold_tra = as.numeric(args[5])
+  #pvOutputThreshold_cis = as.numeric(args[4])
+  pvOutputThreshold_tra = 1e-5
+  pvOutputThreshold_cis = 0.05
   # Distance for local gene-SNP pairs
-  cisDist = as.numeric(args[6])
-  #cisDist = 1e6
+  #cisDist = as.numeric(args[6])
+  cisDist = 1e6
 }
 
 ## Load default settings
@@ -69,7 +71,7 @@ snps.sd$fileSliceSize = 2000;      # read file in slices of 2,000 rows
 
 # Analysis genotype data versus gene expression data requries a loop through the 
 # different timepoints measured in the gene expression data.
-time_intervals <- list(t0 = seq(1,dim(GE)[2], 4),
+time_intervals <- list(t0 = seq(1,dim(GE)[2],4),
                        t1 = seq(2,dim(GE)[2],4),
                        t2 = seq(3,dim(GE)[2],4),
                        t3 = seq(4,dim(GE)[2],4))
@@ -81,8 +83,8 @@ for (interval in time_intervals) {
   pattern_name.trans <- paste("Trans eQTL - Threshold ",pvOutputThreshold_tra," ",date())
   
   # Output file name and location.
-  output_file_name_cis = tempfile(pattern = pattern_name.cis,tmpdir="~/Documents/R-Output/cis");
-  output_file_name_tra = tempfile(pattern = pattern_name.trans,tmpdir="~/Documents/R-Output/trans");
+  output_file_name_cis = tempfile(pattern = pattern_name.cis,tmpdir="~/Documents/R/cis");
+  output_file_name_tra = tempfile(pattern = pattern_name.trans,tmpdir="~/Documents/R/trans");
   
   # Load gene expression data .
   gene = SlicedData$new();
