@@ -60,9 +60,11 @@ settings <- function() {
 # Handles error messages, exits script.
 error <- function(error,input) {
   tmp <- ""
+  if ( length(input) >= 2 ) {
     for ( i in 1:length(input) ) {
       tmp <- paste(as.character(input[[i]]), sep="")
     }
+  }
   input <- tmp
   cat("
       Something went wrong:
@@ -165,22 +167,28 @@ parseOpts <- function() {
       # Check if file argument 2 and argument 3 exist.
       if ( file.exists( file.path(args[2][[1]]) ) && file.exists( file.path(args[3][[1]]) ) ) {
         
-        # Load data into environment
-        load(args[2][[1]]) # Genotype file.
-        load(args[3][[1]]) # Gene expression file.
+        # Create temp space.
+        temp.space <- new.env()
+        
+        # Load data into temp space.
+        snps.temp <- load(args[2][[1]], temp.space)
+        GE.temp <- load(args[3][[1]], temp.space)
+        
+        # Save data to current environment.
+        snps <- get(snps.temp, temp.space) # Genotype file.
+        GE <- get(GE.temp, temp.space) # Gene expression file.
+        
+        # Save data globally.
+        global("GE", GE)
+        global("snps", snps)
         
         # Store all the names in the global environment.
-        #nms <- ls(pattern = "", envir = .GlobalEnv)
+        #nms <- ls(pattern = "", envir = temp.space)
         #L <- sapply(nms, get, envir = .GlobalEnv, simplify = FALSE)
         
         # Sort out the matrixes.
-        #L <- L[which(sapply(L,is.matrix) == T)]
+        #L <- as.matrix(L[which(sapply(L,is.matrix) == T)])
         
-        #GE <- as.data.frame(L[1])
-        global("GE",count.all)
-        #snps <- as.data.frame(L[2])
-        global("snps", mergedGenotypes_clones2)
-      
       # If files don't exist, throw error.
       } else {
         
@@ -223,20 +231,20 @@ parseOpts <- function() {
       if( file.exists( file.path(args[2][[1]]) ) && file.exists( file.path(args[3][[1]]) ) ) {
         
         # Load data into environment
-        load(args[2][[1]]) # Genotype file.
-        load(args[3][[1]]) # Gene expression file.
+        temp.space <- new.env()
+        GE <- get(load(args[2][[1]], temp.space)) # Genotype file.
+        snps <- get(which(sapply(load(args[3][[1]], temp.space),is.matrix))) # Gene expression file.
+        print(snps)
+        
         
         # Store all the names in the global environment.
-        #nms <- ls(pattern = "", envir = .GlobalEnv)
+        #nms <- ls(pattern = "", envir = temp.space)
         #L <- sapply(nms, get, envir = .GlobalEnv, simplify = FALSE)
         
         # Sort out the matrixes.
-        #L <- L[which(sapply(L,is.matrix) == T)]
-        
-        #GE <- as.data.frame(L[1])
-        global("GE",count.all)
-        #snps <- as.data.frame(L[2])
-        global("snps", mergedGenotypes_clones2)
+        #L <- as.matrix(L[which(sapply(L,is.matrix) == T)])
+        #global("GE",L[1])
+        #global("snps", L[2])
         
       # If files don't exist, throw error.
       } else {
@@ -615,8 +623,13 @@ eQTL <- function(){
     
     # Results.
     cat('Analysis done in: ', me$time.in.sec, ' seconds', '\n\n\n')
-    #cat('Detected eQTLs:', '\n')
-    #show(me$all$eqtls)
+    
+    # Verbose - Show all detected eQTLs.
+    if ( VERBOSE == TRUE ) {
+      cat('Detected eQTLs:', '\n')
+      show(me$all$eqtls)
+    }
+    
     eqtls <- rbind(eqtls, me$all$eqtls)
     # Plot the histogram of all p-values.
     #plot(me)
@@ -754,12 +767,17 @@ ctQTL <- function () {
       noFDRsaveMemory = FALSE);
     
     # Unlink output_file_name (keep it commented to keep eQTL mappings),
-    unlink(output_file_name)
+    unlink(output_file_name_cis)
+    unlink(output_file_name_tra)
     
     # Results.
     cat('Analysis done in: ', me$time.in.sec, ' seconds', '\n\n\n')
-    #cat('Detected eQTLs:', '\n')
-    #show(me$all$eqtls)
+    
+    # Verbose - Show all detected eQTLs.
+    if ( VERBOSE == TRUE ) {
+      cat('Detected eQTLs:', '\n')
+      show(me$all$eqtls)
+    }
     
     # Bind all cis- trans- eqtls to dataframe
     transqtls <- rbind(transqtls, me$trans$eqtls)
