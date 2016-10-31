@@ -1,10 +1,40 @@
 ######################
 # Author: E. Schutte #
 ######################
+
+# Let the user know the packages are loaded
+cat("Loading packages, if not present, they are installed.\n\nThis may take a while.\n\n")
 ### Libraries
-## Loading libraries.
-# Matrix eQTL mapping.
+## Source.
+# Set source(s) needed.
+source("http://bioconductor.org/biocLite.R")
+
+## CRAN
+# Check if all libraries are installed, if not install them.
+packages <- c("MatrixEQTL","devtools")
+if ( length( setdiff( packages, rownames( installed.packages() ) ) ) > 0) {
+  suppressMessages(
+  install.packages( setdiff( packages, rownames( installed.packages() ) ) )  
+  )
+}
+
+## BiocLite
+# Load BiocLite packages.
+bioclite.packages <- c("vegan", "Rsamtools", "qvalue")
+if( length( setdiff( bioclite.packages, rownames( installed.packages() ) ) > 0 ) ) {
+  suppressMessages(
+  biocLite( setdiff( bioclite.packages, rownames( installed.packages() ) ) )
+  )
+}
+
+## Libraries
+# Load Matrix eQTL library.
 library("MatrixEQTL")
+library("devtools")
+if ( length( dev_packages() == 0 ) ) {
+  devtools::install_github("guigolab/sQTLseekeR")
+} 
+library("sQTLseekeR")
 
 ### Functions
 ## Global settings.
@@ -43,6 +73,9 @@ settings <- function() {
   
   # Command line Test 7:
   #global("args", list("~/Dropbox/Erik/clones_CeD_genotypes_noDuplicates.Rdata","~/Dropbox/Erik/count_all_batch_times_sample.names_96Samples_noCD8_leiden.Rdata"))
+  
+  # Command line Test 8:
+  #global("args",list("basic","~/Dropbox/Erik/clones_CeD_genotypes_noDuplicates.Rdata","~/Dropbox/Erik/expr_vst_condition_patient_rmBatch_88samples.Rdata"))
   
   #load("~/Dropbox/Erik/clones_CeD_genotypes_noDuplicates.Rdata")
   #load("~/Dropbox/Erik/count_all_batch_times_sample.names_96Samples_noCD8_leiden.Rdata")
@@ -641,9 +674,9 @@ eQTL <- function(){
   eqtls <- format(eqtls,scientific=TRUE)
   
   cat("Writing to file...\n\n")
-  write.csv(eqtls,file=paste(mainDir,subDir,"lncrna_eqtls_basic",sep=""))
+  write.csv(eqtls,file=paste(file.path(mainDir,subDir,"Basic",fsep=""), "/lncrna_eqtls_basic",sep=""))
   
-  cat("Wrote file to: ",paste(mainDir,subDir,"lncrna_eqtls_basic",sep=""),"\n\n")
+  cat("Wrote file to: ",paste(file.path(mainDir,subDir,"Basic",fsep=""), "/lncrna_eqtls_basic",sep=""),"\n\n")
   cat("FINISHED\n\n")
   ### Login
   ## Login to Molgenis.
@@ -789,17 +822,84 @@ ctQTL <- function () {
   cisqtls <- format(cisqtls,scientific=TRUE)
   
   cat("Writing to file...\n\n")
-  write.csv(transqtls,file=paste(mainDir,subDir,"lncrna_eqtls_trans",sep=""))
-  write.csv(cisqtls,file=paste(mainDir,subDir,"lncrna_eqtls_cis",sep=""))
+  write.csv( transqtls,file=paste(file.path(mainDir, subDir, "Trans", fsep = ""), "/lncrna_eqtls_trans", sep="") )
+  write.csv( cisqtls,file=paste(file.path(mainDir, subDir, "Cis", fsep = ""), "/lncrna_eqtls_cis", sep="") )
   
-  cat("Wrote file(s) to: ",paste(mainDir,subDir,"lncrna_eqtls_basic",sep=""),"\n\n")
+  cat("Wrote file(s) to: \n",paste(file.path(mainDir, subDir, "Trans", fsep=""), sep=""),
+      paste(file.path(mainDir, subDir, "Cis", fsep="") ) )
+  
   cat("FINISHED\n\n")
+}
+
+## sQTL.
+# Maps splice eQTLs.
+sQTL <- function () {
+  ### Pre-processing
+  ## Change working directory.
+  # Set working directory to test data location.
+  setwd("/usr/local/lib/R/3.3/site-library/sQTLseekeR/data/")
+  
+  ## Load data.
+  # Transcript expression for 5 genes and SNPs in these 5 regions, the third file contains the coordinates.
+  trans.exp.f = "transExpression.tsv.gz"
+  gene.bed.f = "genes.bed"
+  genotype.f = "snps-012coded.tsv"
+  
+  ## Order data.
+  # Ordered genotype file should be compressed and indexed if not done before.
+  genotype.indexed.f = index.genotype(genotype.f)
+  
+  ## Read data.
+  # Import transcript expression, cleaned.
+  te.df = read.table(trans.exp.f, as.is=T, header=T, sep="\t")
+  tre.df = prepare.trans.exp(te.df)
+  
+  # Show data.
+  tre.df[1:5,1:5]
+  
+  ### Test for gene/SNP associations
+  ## Tests.
+  # Run test with transcript expression and genotype file and gene coordinates.
+  gene.bed = read.table(gene.bed.f, as.is=T, sep="\t")
+  
+  # Set column names.
+  colnames(gene.bed) = c("chr","start","end","geneId")
+  
+  res.df = sqtl.seeker(tre.df, genotype.indexed.f, gene.bed, svQTL=T, verbose=F)
+  head(res.df)
+  
+  write.table(res.df, file="sQTLs-all.tsv", quote=FALSE, row.names=FALSE, sep="\t")
+  
+  sqtls.df = sqtls(res.df, FDR=.01, out.pdf="sQTLs-FDR01.pdf")
+  head(sqtls.df)
+## createDir.
+# creates direcotry for mapping types.
+createDir <- function(dir) {
+  
+  # If directory exists..
+  if ( dir.exists( file.path(mainDir, subDir, dir, fsep="") ) ) {
+    
+    # .. show the user the directory already exists.
+    cat("Directory: \'", file.path(mainDir, subDir, dir, fsep=""), " exists.\n", sep = "") 
+  } 
+  
+  # If direcotry does not exists..
+  else {
+    
+    # .. show the user the directory is being created.
+    cat("Creating directory: \'", file.path(mainDir, subDir, dir, fsep=""),"\'\n",sep="")
+    
+    # Create the directory.
+    dir.create( file.path(mainDir, subDir, dir, fsep=""), recursive = T )
+  }
+  cat("\n\n")
 }
 
 ## Main.
 # Main function, boots script.
 main <- function() {
-  ### Call function
+  cat("\n\n")
+  ### Call functions
   ## Settings.
   # Loads defualt settings.
   settings()
@@ -811,7 +911,7 @@ main <- function() {
   ### Output
   ## Show output on terminal.
   # Let the user know the program started.
-  cat("Starting prepare_data.R..\n\nLoading files..\n\n")
+  cat("Starting eQTL-mapping.R..\n\nLoading files..\n\n")
   
   # Print if the files are loaded.
   cat("Files loaded:\n",as.character(args[2][[1]]),"\n",as.character(args[3]),
@@ -819,11 +919,8 @@ main <- function() {
   
   ### Running the directory preperation
   ## Loading files
-  # Verbose
-  if( VERBOSE == TRUE ) {
-    # Verbose - Print for checking existing paths.
-    cat("\nCheck if directorys exist..\n\n")
-  }
+  # Checking existing paths.
+  cat("\nCheck if directorys exist..\n\n")
   
   ## Checking directories.
   # Main directory, should be universal on every system.
@@ -831,14 +928,6 @@ main <- function() {
   
   # Sub directory.
   global("subDir", "R/")
-  
-  # If the main and sub directory do not exist, create them.
-  if ( dir.exists(file.path(mainDir, subDir)) ) {
-    cat("Directory \'", file.path(mainDir, subDir),"\' already exists.\n\n",sep = "")
-  } else {
-    dir.create(file.path(mainDir, subDir))
-    cat("Directory \'", file.path(mainDir, subDir),"\' created!\n\n",sep="")
-  }
   
   ### Prepare data
   ## prepare data files for mapping.
@@ -849,15 +938,27 @@ main <- function() {
   # Check the mapping type.
   if ( MAPPING_TYPE == 'basic') {
     
+    # Create directory for the Basic results.
+    createDir("Basic")
+    
     # Map eQTLs.
     eQTL()
     
   } else if ( MAPPING_TYPE == 'ct' ) {
     
+    # Create directory for the Cis results.
+    createDir("Cis")
+    
+    # Create directory for the Trans results.
+    createDir("Trans")
+    
     # Map cis- trans-eQTLs.
     ctQTL()
     
   } else if ( MAPPING_TYPE == 's' ) {
+    
+    # Create directory for the Splice results.
+    createDir("Splice")
     
     # Map splice QTLs.
     sQTL()
