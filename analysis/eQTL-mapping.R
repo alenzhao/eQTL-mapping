@@ -868,10 +868,12 @@ sQTL <- function () {
   res.df = sqtl.seeker(tre.df, genotype.indexed.f, gene.bed, svQTL=T, verbose=F)
   head(res.df)
   
-  write.table(res.df, file="sQTLs-all.tsv", quote=FALSE, row.names=FALSE, sep="\t")
+  write.table(res.df, file="~/Documents/R/sQTLs-all.tsv", quote=FALSE, row.names=FALSE, sep="\t")
   
-  sqtls.df = sqtls(res.df, FDR=.01, out.pdf="sQTLs-FDR01.pdf")
+  sqtls.df = sqtls(res.df = res.df, FDR = 0.01, out.pdf="~/Documents/R/sQTLs-FDR01.pdf")
   head(sqtls.df)
+}
+  
 ## createDir.
 # creates direcotry for mapping types.
 createDir <- function(dir) {
