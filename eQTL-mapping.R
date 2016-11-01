@@ -365,12 +365,12 @@ data_prep <- function () {
     }
     # Save genotype and genotype count for each column.
     alleles.all <- table(snps[,i])
-    
+  
     # A minimum of 3 samples for a genotype is required to effectively calculate correlation.
     # Therefore we are removing the rows where this is not the case.
     if ( length(table(snps[,i])) < 3 & min(table(snps[,i])) < 3) {
       
-      # Set an index for the SNP, so that later it can be removed.
+      # Set an index for the SNP, so that it can be removed later.
       snps.discarded.pos <- c(snps.discarded.pos,i)
       
       # Store the discarded SNP for later review.
@@ -390,6 +390,7 @@ data_prep <- function () {
     
     # For every allele that the genotype is counted for.
     for (a in 1:length(alleles.all)) {
+      
       # Extract the genotype.
       geno <- names(alleles.all[a])
       
@@ -399,22 +400,25 @@ data_prep <- function () {
         cat("Current allele = ", geno,'\n')
       }
       
-      
       # Extract the number of occurrences.
       count <- alleles.all[[a]]
       
-      # Split the genotype and check if the first allele is the same as the second
-      # thus checking for heterozygote or homozygote genotype.
+      # Split the genotype 
       alleles <- strsplit(geno, "")
       
+      #Check if the first allele is the same as the second
+      # thus checking for heterozygote or homozygote genotype.
       if (identical(alleles[[1]][1],alleles[[1]][2]) & geno != '00') {
+        
         # Verbose
         if ( VERBOSE == TRUE ) {
           # Verbose - Print if alleles are identical, and thus are homozygous.
           cat('Alleles are identical, sorted as homozygote\n')
         }
         
+        # If the highest_count_homozygote == 0 (the first iteration).
         if (highest_count_homozygote == 0) {
+          
           # Verbose
           if ( VERBOSE == TRUE ) {
             # Verbose - Print which genotype and count is added as major allele.
@@ -426,11 +430,11 @@ data_prep <- function () {
           highest_count_homozygote <- count
           allele.list[[1]]$genotype <- geno
           allele.list[[1]]$count <- count
-          
+        
+        # If the current genotype has more occurences than the lastly noted genotype,
+        # it is automatically the major allele on the first position.  
         } else if (highest_count_homozygote < count) {
-          # If the current genotype has more occurences than the lastly noted genotype,
-          # it is automatically the major allele on the first position.
-          
+        
           # Verbose
           if ( VERBOSE == TRUE ) {
             # Verbose - Print which genotype and count is added as new major allele,
@@ -492,7 +496,7 @@ data_prep <- function () {
     for (j in 1:nrow(snps)) {
       # Check the current snp agains the determined major, minor and heterozygote genotypes,
       # and determine the allele frequency.
-      snp.freq <- change_allele_to_frequencies(snps[j,i],allele.list)
+      #snp.freq <- change_allele_to_frequencies(snps[j,i],allele.list)
       
       # Verbose.
       if ( VERBOSE == TRUE ) {
@@ -501,7 +505,7 @@ data_prep <- function () {
       }
       
       # Save the SNP frequency at previous occupied genotype location.
-      snps[j,i] <- snp.freq
+      #snps[j,i] <- snp.freq
     }
   }
   
@@ -868,9 +872,9 @@ sQTL <- function () {
   res.df = sqtl.seeker(tre.df, genotype.indexed.f, gene.bed, svQTL=T, verbose=F)
   head(res.df)
   
-  write.table(res.df, file="~/Documents/R/sQTLs-all.tsv", quote=FALSE, row.names=FALSE, sep="\t")
+  write.table(res.df, file="~/Documents/R/Splice/sQTLs-all.tsv", quote=FALSE, row.names=FALSE, sep="\t")
   
-  sqtls.df = sqtls(res.df = res.df, FDR = 0.01, out.pdf="~/Documents/R/sQTLs-FDR01.pdf")
+  sqtls.df = sqtls(res.df = res.df, FDR = 0.01, out.pdf="~/Documents/R/Splice/sQTLs-FDR01.pdf")
   head(sqtls.df)
 }
   
@@ -882,7 +886,7 @@ createDir <- function(dir) {
   if ( dir.exists( file.path(mainDir, subDir, dir, fsep="") ) ) {
     
     # .. show the user the directory already exists.
-    cat("Directory: \'", file.path(mainDir, subDir, dir, fsep=""), " exists.\n", sep = "") 
+    cat("Directory: \'", file.path(mainDir, subDir, dir, fsep=""), "\' exists.\n", sep = "") 
   } 
   
   # If direcotry does not exists..
